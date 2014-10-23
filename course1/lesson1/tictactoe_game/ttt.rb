@@ -38,7 +38,7 @@ end
 
 # 判断输赢,传入chess_board和win_chess_senario作为参数, 返回满足赢棋条件的组合array，如［1，2，3］
 # b => chess_board hash, s => win_chess_senario, square_number => number of the chess board square
-def is_win?(b, s)
+def win?(b, s)
   s.each do |c|
     mark_str = ''
     c.each do |square_number|
@@ -52,8 +52,16 @@ def is_win?(b, s)
   return false
 end
 
-#判断棋盘是否已满
-def empty?()
+# check the chess board whether empty
+def is_full?(b)
+  is_full = true
+  b.each do |k, v|
+    if v.empty? 
+      is_full = false
+      break
+    end
+  end
+  return is_full
 end
 
 # check the square whether taken, return true if the square is taken.
@@ -78,6 +86,9 @@ def get_computer_select(b)
   b_not_taken.keys.sample
 end
 
+def display_result(b, s)
+  puts "the win line is => " + win?(b,s).to_s if win?(b,s)
+end
 
 #main loop of the game
 begin
@@ -88,8 +99,13 @@ begin
 
   #检验有无输赢的结果，有就退出main loop
   # check whether win, if win then output the result and quit the main loop
-  if is_win?(chess_board, win_chess_senario)
+  if win?(chess_board, win_chess_senario)
     puts "you win!"
+    break
+  end
+
+  if is_full?(chess_board)
+    puts "the chess board is full!"
     break
   end
 
@@ -100,15 +116,19 @@ begin
 
   #检验有无输赢结果，有就退出main loop
   # check whether win, if win then output the result and quit the main loop
-  if is_win?(chess_board, win_chess_senario)
+  if win?(chess_board, win_chess_senario)
     puts "computer win!"
     break
   end
 
+  if is_full?(chess_board)
+    puts "the chess board is full!"
+    break
+  end
   
-end until is_win?(chess_board, win_chess_senario)
+end until win?(chess_board, win_chess_senario)
 
-p "win line is: " + is_win?(chess_board, win_chess_senario).to_s
+display_result(chess_board, win_chess_senario)
 
 
 
