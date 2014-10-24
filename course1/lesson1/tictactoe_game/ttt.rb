@@ -1,140 +1,109 @@
-#1. draw chess board
-#1.1 def draw_board(b) end
-#1.2 定义棋盘的数据结构，在array和hash中选择，需要编号，但是否有序无所谓，
-#2. player picks a square, put a "X" on the board, check to see whether win or board is empty.
-#2.1 在棋盘的数据结构中标记，表示player落子；判断是否与已占用的格子重复，loop；
-#2.2 单独的数据结构，记录player所有的落子，内容是落子的位置即编号？
-#2.3 put a 'X' on the board, 调用方法 draw_board()
-#2.4 检查是否有输赢，调用方法 is_win?();如果是，退出loop，输出结果
-#2.5 检查棋盘的格子是否全被占用，调用方法 is_taken?()；如果是，退出loop，输出结果
-#3. computer picks a square randomly, puts a "O" on the board, check to see whether win or board is empty.
-#3.1 为计算机随机选择一个棋盘位置，需要从剩下来的格子中选择，
-#4. loop the steps above until WIN or square all taken.
-#5. output the game result.
 
-#表现棋盘的数据结构, 包含9个元素的队列，对应棋盘的9个空格，初始化为每个元素为''
-#chess_board = Array.new(9, '') 
-
-# use a hash to represent the chess board, keys are number from "1" - "9", value are initialized to ''
-chess_board = { "1" => '', "2" => '', "3" => '',
-                "4" => '', "5" => '', "6" => '',
-                "7" => '', "8" => '', "9" => ''
-              }
-
-#表现赢棋情况的数据结构，赢棋情况的所有编号组合, all combinations of win chess scenario
-win_chess_senario = [ [1,2,3], [4,5,6], [7,8,9], [1,4,7], 
-                      [2,5,8], [3,6,9], [1,5,9], [3,5,7] ]
-
-
-
-#画棋盘方法, b is the data structure representing the chess board
-def draw_board(b)
-  system("clear")
-  puts " #{b["1"]}   |  #{b["2"]}  |  #{b["3"]}  "
-  puts "----------------"
-  puts " #{b["4"]}   |  #{b["5"]}  |  #{b["6"]}  "
-  puts "----------------"
-  puts " #{b["7"]}   |  #{b["8"]}  |  #{b["9"]}  "
+# draw the game board
+def draw_board(board, player_arr, computer_arr)
+  system 'clear'
+  puts
+  puts "     |     |"
+  puts "  #{board['1']}  |  #{board['2']}  |  #{board['3']}"
+  puts "     |     |"
+  puts "-----+-----+-----"
+  puts "     |     |"
+  puts "  #{board['4']}  |  #{board['5']}  |  #{board['6']}"
+  puts "     |     |"
+  puts "-----+-----+-----"
+  puts "     |     |"
+  puts "  #{board['7']}  |  #{board['8']}  |  #{board['9']}"
+  puts "     |     |"
+  puts
+  puts "Player picks: #{player_arr}, Computer picks: #{computer_arr}"
 end
 
-# 判断输赢,传入chess_board和win_chess_senario作为参数, 返回满足赢棋条件的组合array，如［1，2，3］
-# b => chess_board hash, s => win_chess_senario, square_number => number of the chess board square
-def win?(b, s)
-  s.each do |line|
-    mark_str = ''
-    line.each do |square_number|
-      mark_str << b[square_number.to_s].to_s
-    end
-    if mark_str == "XXX"
-      return [line, "player win!"]
-      break
-    elsif mark_str == "OOO"
-      return [line, "computer win!"]
-      break
-    end
-  end
-  return false
+def initialize_game(b, player, computer)
+  board = {}
+  player = []
+  computer = []
+  ('1'..'9').each {|number| board[number]=''}
+  player.clear
+  computer.clear
+  return board, player, computer
 end
 
-# check the chess board whether empty
-def is_full?(b)
-  is_full = true
-  b.each do |k, v|
-    if v.empty? 
-      is_full = false
-      break
-    end
-  end
-  return is_full
-end
-
-# check the square whether taken, return true if the square is taken.
-def is_taken?(b, p)
-  return true if ["X", "O"].include?(b[p])
-end
-
-
-#playe choose the square by number, return the square number
-def get_player_select(b)
+# player pick a square number
+def player_picks(board, player_arr)
+  print "player picks: "
   begin
-    player = gets.chomp
-    puts "It's already taken!" if is_taken?(b, player)
-  end until !is_taken?(b, player)
-  return player
+    player_pick_number = gets.chomp
+    print "square #{player_pick_number} was taken! pick again: " if board[player_pick_number]
+  end until board[player_pick_number].empty?
+  player_arr.push(player_pick_number.to_i)
+  board[player_pick_number] = "X"
 end
 
-# computer choose from the empty squares , and randomly select one, return the square number; 
-# computer在没有被占用的棋格中，随机选择棋格，返回选中的棋格编号
-def get_computer_select(b)
-  b_not_taken = b.select {|k, v| v.empty?}
-  b_not_taken.keys.sample
+# computer pick a square number
+def computer_picks(board, computer_arr)
+  empty_board = board.select {|number, mark| mark.empty?}
+  computer_pick_number = empty_board.keys.sample
+  computer_arr.push(computer_pick_number.to_i)
+  board[computer_pick_number] = "O"
 end
 
-def display_result(b, s)
-  puts "the win line is => " + win?(b,s)[0].to_s if win?(b,s)
+# check whether anyone wins by counting if "XXX" or "OOO" exists based upon the winning_lines
+def win?(board)
+  winning_lines = [[1, 2, 3], [4, 5, 6], [7, 8, 9],
+                   [1, 4, 7], [2, 5, 8], [3, 6, 9], 
+                   [1, 5, 9], [3, 5, 7]]
+
+  winning_lines.each do |line|
+    marks = String.new
+    line.each do |number|
+      marks << board[number.to_s]
+    end
+    if marks == "XXX"
+      return ["Player wins!", line]
+      break
+    elsif marks == "OOO"
+      return ["Computer wins!", line]
+      break
+    end
+  end
+  nil
 end
 
-#main loop of the game
+# check whether the game board is full
+def board_full?(board)
+  empty_board = board.select {|number, mark| mark.empty?}
+  if empty_board.empty?
+    "Board is full!"
+  end
+end
+
+# main loop
 begin
-  puts "Choose a position, 1 - 9: "
-  player_select = get_player_select(chess_board)
-  chess_board[player_select] = "X"
-  draw_board(chess_board)
 
-  #检验有无输赢的结果，有就退出main loop
-  # check whether win, if win then output the result and quit the main loop
-  winner = win?(chess_board, win_chess_senario)
-  if winner 
-    puts winner[1]
-    break
+  board, player_arr, computer_arr = initialize_game(board, player_arr, computer_arr)
+
+  # draw the empty board when game initialization
+  draw_board(board, player_arr, computer_arr)
+
+  # one game loop
+  loop do
+    player_pick_number = player_picks(board, player_arr)
+    draw_board(board, player_arr, computer_arr)
+    break if win?(board) || board_full?(board)
+
+    computer_picks(board, computer_arr)
+    draw_board(board, player_arr, computer_arr)
+    break if win?(board) || board_full?(board)
   end
 
-  if is_full?(chess_board)
-    puts "the chess board is full!"
-    break
+  if result = win?(board)
+    puts "#{result[0]} winning line is: #{result[1]} "
+  elsif result = board_full?(board)
+    puts "#{result}" if result = board_full?(board)
   end
 
-  computer_select = get_computer_select(chess_board)
-  puts "computer chose #{computer_select}"
-  chess_board[computer_select] = "O"
-  draw_board(chess_board)
+  print "Play again?(y/n)"
 
-  #检验有无输赢结果，有就退出main loop
-  # check whether win, if win then output the result and quit the main loop
-  winner = win?(chess_board, win_chess_senario)
-  if winner 
-    puts winner[1]
-    break
-  end
+end until gets.chomp.downcase != 'y'
 
-  if is_full?(chess_board)
-    puts "the chess board is full!"
-    break
-  end
-  
-end until win?(chess_board, win_chess_senario)
-
-display_result(chess_board, win_chess_senario)
-
-
-
+puts "Game Over!"
