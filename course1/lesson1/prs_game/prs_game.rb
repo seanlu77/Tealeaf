@@ -1,54 +1,68 @@
-puts "Play Paper Rock Scissors game!"
+# paper rock scissors game
+# player vs computer
+# 1. get player's choice
+# 1.1 validate player's choice (p/r/s)
+# 2. get computer's choice
+# 2.1 randomly choose from (p/r/s)
+# 3 do the compare, return the result
+# 4 display the result
+# 5 play again?
 
-#define three types used in the game
-CHOICES = {'P' => 'paper', 'R' => 'rock', 'S' => 'scissors'}
 
-#define all scenarios when player vs. computer
-SCENARIO = {paper:    {paper: "It's a tie!",
-                       rock: "Paper smushes rock! You win!",
-                       scissors: "Scissors cut paper! You lose"
-                     },
-
-            rock:     {paper: "Paper smushes rock! You win!",
-                       rock: "It's a tie!",
-                       scissors: "Rock crushes scissors! You lose!"
-                     },
-
-            scissors: {paper: "Scissors cut paper! You win!",
-                       rock: "Rock crushes scissors! You lose!",
-                       scissors: "It's a tie!"
-                     }
-
-            }
-
-game_on = TRUE
-
-while game_on
-
-  #make sure player's input is valid
-  begin 
-    puts "Please choose one: (P/R/S), P-Paper, R-Rock, S-Scissors "
-    input = gets.chomp.upcase
-  end until CHOICES.keys.include?(input)
-
-  player = CHOICES[input].to_sym
-  
-  #choose from CHOICES randomly
-  computer = CHOICES[CHOICES.keys.sample].to_sym
-  
-  #choose the right scenario from the SCENARIO hash BY player and computer
-  puts SCENARIO[player][computer]
-
-  
+# get player's choice 
+def get_player_choice
+  print "player's choice (p-paper, r-rock, s-scissors): "
   begin
-    puts "Play again? (Y/N)"
-    input = gets.chomp.upcase
-    if input == "N"
-      game_on = FALSE
-      puts "Game over, good bye!"
-    elsif input != "Y"
-      puts "You need to choose Y or N."
-    end
-  end until input == "N" || input == "Y"
-
+    player = gets.chomp.downcase 
+    print "It's not a valid choice, please choose from p/r/s: " unless ['p', 'r', 's'].include?(player)
+  end until ['p', 'r', 's'].include?(player)
+  puts "player's choice: #{player}"
+  return player
 end
+
+# get computer's choice
+def get_computer_choice
+  computer = ['p', 'r', 's'].sample
+  puts "computer's choice: #{computer}"
+  return computer
+end
+
+# follow the rule and do the compare
+def do_compare(player, computer)
+  # all p/r/s combination scenario
+  scenario = {'p' => {'p' => "It's a tie!",
+                      'r' => "paper smushes rock, you win!",
+                      's' => "scissors cut paper, computer win!"},
+
+              'r' => {'p' => "paper smushes rock, computer win!",
+                      'r' => "It's a tie!",
+                      's' => "rock smashes scissors, you win!"},
+
+              's' => {'p' => "scissors cut paper, you win!",
+                      'r' => "rock smashes scissors, computer win!",
+                      's' => "It's a tie!"}
+              }
+
+  scenario[player][computer]
+end
+
+puts "Game Paper Rock Scissors......"
+puts
+
+# main loop
+begin
+
+  player_choice = get_player_choice
+  
+  computer_choice = get_computer_choice
+  
+  result = do_compare(player_choice, computer_choice)
+  
+  puts result
+
+  print "Playe again?(y/n)"
+  game_over = true if gets.chomp.downcase != 'y'
+
+end until game_over
+
+puts "Game over!"
