@@ -29,6 +29,7 @@ win_chess_senario = [ [1,2,3], [4,5,6], [7,8,9], [1,4,7],
 
 #画棋盘方法, b is the data structure representing the chess board
 def draw_board(b)
+  system("clear")
   puts " #{b["1"]}   |  #{b["2"]}  |  #{b["3"]}  "
   puts "----------------"
   puts " #{b["4"]}   |  #{b["5"]}  |  #{b["6"]}  "
@@ -39,13 +40,16 @@ end
 # 判断输赢,传入chess_board和win_chess_senario作为参数, 返回满足赢棋条件的组合array，如［1，2，3］
 # b => chess_board hash, s => win_chess_senario, square_number => number of the chess board square
 def win?(b, s)
-  s.each do |c|
+  s.each do |line|
     mark_str = ''
-    c.each do |square_number|
+    line.each do |square_number|
       mark_str << b[square_number.to_s].to_s
     end
-    if ["XXX", "OOO"].include?(mark_str)
-      return c
+    if mark_str == "XXX"
+      return [line, "player win!"]
+      break
+    elsif mark_str == "OOO"
+      return [line, "computer win!"]
       break
     end
   end
@@ -87,7 +91,7 @@ def get_computer_select(b)
 end
 
 def display_result(b, s)
-  puts "the win line is => " + win?(b,s).to_s if win?(b,s)
+  puts "the win line is => " + win?(b,s)[0].to_s if win?(b,s)
 end
 
 #main loop of the game
@@ -99,8 +103,9 @@ begin
 
   #检验有无输赢的结果，有就退出main loop
   # check whether win, if win then output the result and quit the main loop
-  if win?(chess_board, win_chess_senario)
-    puts "you win!"
+  winner = win?(chess_board, win_chess_senario)
+  if winner 
+    puts winner[1]
     break
   end
 
@@ -116,8 +121,9 @@ begin
 
   #检验有无输赢结果，有就退出main loop
   # check whether win, if win then output the result and quit the main loop
-  if win?(chess_board, win_chess_senario)
-    puts "computer win!"
+  winner = win?(chess_board, win_chess_senario)
+  if winner 
+    puts winner[1]
     break
   end
 

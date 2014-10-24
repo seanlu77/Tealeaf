@@ -60,7 +60,7 @@ begin
   
   puts result
 
-  print "Playe again?(y/n)"
+  print "Play again?(y/n)"
   game_over = true if gets.chomp.downcase != 'y'
 
 end until game_over
