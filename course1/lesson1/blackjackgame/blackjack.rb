@@ -7,7 +7,7 @@ def initialize_game(number_of_decks)
   cards_of_dealer = Array.new
   suites = ["\u2660", "\u2663", "\u2665", "\u2666"]
   ranks = %w(2 3 4 5 6 7 8 9 10 J Q K A)
-  cards_in_decks = ranks.product(suites)
+  cards_in_decks = ranks.product(suites)*number_of_decks
 
   return [cards_in_decks.shuffle, cards_of_player, cards_of_dealer]
 end
