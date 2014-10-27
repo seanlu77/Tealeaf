@@ -1,6 +1,6 @@
 require 'pry'
 
-#初始化
+# initialize cards_in_decks, cards_of_player&dealer,
 def initialize_game(number_of_decks)
   cards_in_decks = []
   cards_of_player = Array.new
@@ -12,12 +12,12 @@ def initialize_game(number_of_decks)
   return [cards_in_decks.shuffle, cards_of_player, cards_of_dealer]
 end
 
-#发牌
+# deal cards 
 def deal_cards(cards_in_decks, cards_in_hands)
   cards_in_hands.push(cards_in_decks.pop)
 end
 
-#计算牌点
+# calculate cards points in hands
 def calculate_points(cards_in_hands)
   points = 0
   cards_without_ace = cards_in_hands.select {|card| card[1] != 'A'}
@@ -58,7 +58,7 @@ def calculate_points(cards_in_hands)
   end
 end
 
-
+# display cards in hands
 def display_hands(cards_of_player, cards_of_dealer, player_name, hidden)
   system 'clear'
   print "#{player_name}:\t"
@@ -79,6 +79,7 @@ def display_hands(cards_of_player, cards_of_dealer, player_name, hidden)
   puts
 end
 
+# calculate both player and dealer's cards points 
 def calculate_total(cards_of_player, cards_of_dealer)
   total_points=[]
   total_points[0] = calculate_points(cards_of_player)
@@ -86,6 +87,7 @@ def calculate_total(cards_of_player, cards_of_dealer)
   total_points
 end
 
+# check winner, return result message and counting winning times
 def display_winner(total_points, player_name, wins)
   if total_points[0] > 21
     wins[1] += 1
@@ -117,11 +119,9 @@ wins = [0, 0]
 
 loop do
 
-  #游戏初始化
   cards_in_decks, cards_of_player, cards_of_dealer = initialize_game(number_of_decks)
 
-  #各发两张牌牌
-
+  # deal 2 cards to each one
   2.times do
     deal_cards(cards_in_decks, cards_of_player)
     deal_cards(cards_in_decks, cards_of_dealer)
@@ -151,7 +151,6 @@ loop do
     end
   end
   
-  #check winner, display results
   total_points = calculate_total(cards_of_player, cards_of_dealer)
   display_hands(cards_of_player, cards_of_dealer, player_name, false)
   display_winner(total_points, player_name, wins)
