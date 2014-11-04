@@ -35,19 +35,16 @@ class Board
   end
 
   def is_board_full?
-    if empty_positions.empty?
-      return true
-    else
-      return nil
-    end
+    empty_positions.empty? ? true : false
   end
 
   def is_position_empty?(position)
-    if board_content[position] == ''
-      return true
-    else
-      return nil
-    end
+    board_content[position] == '' ? true : false
+    # if board_content[position] == ''
+    #   return true
+    # else
+    #   return nil
+    # end
   end
 
   def check_winner
