@@ -1,23 +1,32 @@
 # player
-require 'pry'
 module Blackjack
-  def cal_points(cards)
+
+  def cal_points
     points = 0
-    cards_without_a = cards.select {|card| card[0] != 'A'}
+    cards_without_a = cards.select {|card| card.value != 'A'}
     cards_without_a.each do |card|
-      if card[0].to_i != 0
-        points += card[0].to_i
-      elsif card[0] != 'A'
+      if card.value.to_i != 0
+        points += card.value.to_i
+      elsif card.value != 'A'
         points += 10
       end
     end
-    cards_with_a = cards.select {|card| card[0] == 'A'}
+    cards_with_a = cards.select {|card| card.value == 'A'}
     cards_with_a.size.times do 
       points += 11
       points -= 10 if cards_with_a.size > 1 && points == 21 || points > 21
     end
     points
   end
+
+  def points
+    self.cal_points
+  end
+
+  def show_hand
+    puts self
+  end
+
 end
 
 class Player 
@@ -31,10 +40,6 @@ class Player
     @name = n
     @cards = []
     @wins = 0
-  end
-
-  def points
-    self.cal_points(self.cards)
   end
 
   def to_s
@@ -52,12 +57,22 @@ class Dealer
     @wins = 0
   end
 
-  def points
-    self.cal_points(cards)
+  def to_s
+    "dealer: #{self.cards.join(' ')}     points: #{self.points}"
+  end
+
+end
+
+class Card
+  attr_accessor :value, :suit
+
+  def initialize(v, s)
+    @value = v
+    @suit = s
   end
 
   def to_s
-    "dealer: #{self.cards.join(' ')}     points: #{self.points}"
+    "#{value}#{suit}"
   end
 
 end
@@ -66,8 +81,13 @@ class Decks
   FACES = [ "A", "2", "3", "4", "5", "6", "7", "8", "9" ,"10", "J", "Q", "K"]
   SUITS = ["\u2660", "\u2663", "\u2665", "\u2666"]
 
+  attr_accessor :card, :value
   def initialize(number_of_deck)
-    @value = (FACES.product(SUITS)*number_of_deck).shuffle
+    @value = []
+    (FACES.product(SUITS)*number_of_deck).shuffle.each do |c|
+      @card = Card.new(c[0], c[1])
+      @value.push(@card)
+    end
   end
 
   def deal_card(player)
@@ -134,7 +154,10 @@ class Game
     while true
       start_game
       deck.deal_2_cards_each(player, dealer)
-      self.display_players
+      system "clear"
+      player.show_hand
+      dealer.show_hand
+      # self.display_players
       self.player_play
       if player.points > 21 
         msg = "#{player.name} busted! Dealer wins!"
