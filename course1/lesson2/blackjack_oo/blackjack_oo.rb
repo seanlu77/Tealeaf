@@ -1,7 +1,7 @@
-# player
+require 'pry'
 module Blackjack
 
-  def cal_points
+  def points
     points = 0
     cards_without_a = cards.select {|card| card.value != 'A'}
     cards_without_a.each do |card|
@@ -14,13 +14,9 @@ module Blackjack
     cards_with_a = cards.select {|card| card.value == 'A'}
     cards_with_a.size.times do 
       points += 11
-      points -= 10 if cards_with_a.size > 1 && points == 21 || points > 21
+      points -= 10 if cards_with_a.size > 1 && points == Game::BLACKJACK_AMOUNT || points > Game::BLACKJACK_AMOUNT
     end
     points
-  end
-
-  def points
-    self.cal_points
   end
 
   def show_hand
@@ -32,14 +28,13 @@ end
 class Player 
   include Blackjack
 
-  @@wins = 0
-  attr_reader :name
-  attr_accessor :cards, :wins
+  attr_accessor :name, :cards, :wins, :hit_or_stay
 
   def initialize(n)
     @name = n
     @cards = []
     @wins = 0
+    @hit_or_stay = ''
   end
 
   def to_s
@@ -77,14 +72,15 @@ class Card
 
 end
 
-class Decks
+class Deck
   FACES = [ "A", "2", "3", "4", "5", "6", "7", "8", "9" ,"10", "J", "Q", "K"]
   SUITS = ["\u2660", "\u2663", "\u2665", "\u2666"]
 
-  attr_accessor :card, :value
-  def initialize(number_of_deck)
+  attr_accessor :card, :value, :num_of_decks
+  def initialize(num=1)
     @value = []
-    (FACES.product(SUITS)*number_of_deck).shuffle.each do |c|
+    @num_of_decks = num
+    (FACES.product(SUITS)*num).shuffle.each do |c|
       @card = Card.new(c[0], c[1])
       @value.push(@card)
     end
@@ -103,18 +99,31 @@ class Decks
 end
 
 class Game
-  attr_accessor :player, :dealer, :deck
+  attr_accessor :player, :dealer, :deck, :result
+  BLACKJACK_AMOUNT = 21
+  DEALER_HIT_MIN = 17
 
   def initialize
+    @deck = Deck.new
     @player = Player.new("sean")
     @dealer = Dealer.new
-    @deck = Decks.new(2)
+    @result = ''
   end
 
   def start_game
+    puts "What's your name?"
+    print "=>"
+    player.name = gets.chomp
+    puts "How many decks do you want?"
+    print "=>"
+    deck.num_of_decks = gets.chomp.to_i
+    deck = Deck.new(self.deck.num_of_decks)
+  end
+
+  def clear_deck
     player.cards.clear
     dealer.cards.clear 
-    @deck = Decks.new(2)
+    deck = Deck.new(self.deck.num_of_decks)
   end
 
   def display_players
@@ -124,8 +133,8 @@ class Game
     puts 
   end
 
-  def display_winner(msg, wins1, wins2)
-    puts msg
+  def display_winner(message, wins1, wins2)
+    puts message
     puts "#{player.name} wins: #{wins1}\tdealer wins: #{wins2}"
   end
 
@@ -134,58 +143,62 @@ class Game
       while true
         puts "Player chooses Hit or Stay (h/s)?"
         print '=>'
-        hit_or_stay = gets.chomp.downcase
-        break if hit_or_stay == 'h' || hit_or_stay == 's'
+        player.hit_or_stay = gets.chomp.downcase
+        break if player.hit_or_stay == 'h' || player.hit_or_stay == 's'
       end
-      return if hit_or_stay == 's'
+      break if player.hit_or_stay == 's'
       deck.deal_card(player)
-      self.display_players
-    end until player.points > 21
+      display_players
+    end until player.points > BLACKJACK_AMOUNT
+    if player.points > BLACKJACK_AMOUNT 
+      @result = "#{player.name} busted! Dealer wins!"
+      dealer.wins += 1
+    elsif player.points == BLACKJACK_AMOUNT
+      @result = "#{player.name} hits the blackjack, #{player.name} wins!"
+      player.wins += 1
+    end
   end
 
   def dealer_play
-    while dealer.points < 17
+    while dealer.points < DEALER_HIT_MIN
       deck.deal_card(dealer)
-      self.display_players
+      display_players
+    end
+    if dealer.points > BLACKJACK_AMOUNT
+      @result = "Dealer busted! #{player.name} wins!"
+      player.wins += 1
+    elsif dealer.points == BLACKJACK_AMOUNT
+      @result = "Dealer hits the blackjack, dealer wins!"
+      dealer.wins += 1
+    else
+      return
+    end
+  end
+
+  def who_win?
+    if dealer.points < player.points
+      @result = "#{player.name} wins!"
+      player.wins += 1
+    elsif dealer.points == player.points
+      @result = "It's a tie!"
+    else
+      @result = "Dealer wins!"
+      dealer.wins += 1
     end
   end
 
   def run
+    start_game
     while true
-      start_game
+      clear_deck
       deck.deal_2_cards_each(player, dealer)
-      system "clear"
-      player.show_hand
-      dealer.show_hand
-      # self.display_players
-      self.player_play
-      if player.points > 21 
-        msg = "#{player.name} busted! Dealer wins!"
-        dealer.wins += 1
-      elsif player.points == 21
-        msg = "#{player.name} wins!"
-        player.wins += 1
-      else
-        self.dealer_play
-        if dealer.points > 21
-          msg = "Dealer busted! #{player.name} wins!"
-          player.wins += 1
-        elsif dealer.points == 21
-          msg = "Dealer wins!"
-          dealer.wins += 1
-        elsif dealer.points < player.points
-          msg = "#{player.name} wins!"
-          player.wins += 1
-        elsif dealer.points == player.points
-          msg = "It's a tie!"
-        else
-          msg = "Dealer wins!"
-          dealer.wins += 1
-        end
-      end
-      display_winner(msg, player.wins, dealer.wins)
+      display_players
+      player_play
+      dealer_play if player.hit_or_stay == 's'
+      who_win? if player.points < 21 && dealer.points < 21
+      display_winner(result, player.wins, dealer.wins)
       puts "Play again?(y/n)"
-      break if gets.chomp.downcase != 'y'
+      exit if gets.chomp.downcase != 'y'
     end
   end
 
