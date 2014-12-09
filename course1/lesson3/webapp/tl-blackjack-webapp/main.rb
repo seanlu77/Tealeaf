@@ -2,7 +2,11 @@ require 'rubygems'
 require 'sinatra'
 require 'pry'
 
-set :sessions, true
+#set :sessions, true
+
+use Rack::Session::Cookie, :key => 'rack.session',
+                           :path => '/',
+                           :secret => 'your_secret'
 
 BLACKJACK_AMOUNT = 21
 DEALER_MIN_HIT = 17
@@ -11,18 +15,19 @@ helpers do
 
   def calculate_points(cards)
     points = 0
-    cards_without_a = cards.select {|card| card[1] != 'A'}
-    cards_without_a.each do |card|
-      if card[1].to_i != 0
+    cards.each do |card|
+      if card[1] == 'ace'
+        points += 11
+      elsif card[1].to_i != 0
         points += card[1].to_i
-      elsif card[1] != 'A'
+      else
         points += 10
       end
     end
-    cards_with_a = cards.select {|card| card[1] == 'A'}
-    cards_with_a.size.times do 
-      points += 11
-      points -= 10 if cards_with_a.size > 1 && points == 21 || points > 21
+    cards_with_a = cards.select {|card| card[1] == 'ace'}
+    cards_with_a.count.times do 
+      break if points <= BLACKJACK_AMOUNT
+      points -= 10
     end
     points
   end
